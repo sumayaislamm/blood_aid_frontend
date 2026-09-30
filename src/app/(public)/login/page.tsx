@@ -8,6 +8,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { useAuthStore } from "@/src/stores/auth.store";
 import { loginUser } from "@/src/features/auth/auth.api";
+import { setAuthCookie } from "@/src/lib/auth-cookie";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address."),
@@ -40,6 +41,7 @@ export default function LoginPage() {
       }
 
       setAuth(response.data.user, response.data.token);
+      setAuthCookie(response.data.token);
 
       toast.success("Login successful!");
 
