@@ -114,10 +114,6 @@ export default function CreateBloodRequestPage() {
     }
   };
 
-  // const onSubmit = (data: BloodRequestFormValues) => {
-  //   createRequestMutation.mutate(data);
-  // };
-
   const onSubmit = (data: BloodRequestFormValues) => {
     const payload = {
       ...data,

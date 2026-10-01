@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
@@ -70,9 +68,7 @@ export default function MyBloodRequestsPage() {
     <section className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm text-muted-foreground">
-            Requester Dashboard
-          </p>
+          <p className="text-sm text-muted-foreground">Requester Dashboard</p>
 
           <h1 className="mt-1 text-2xl font-bold tracking-tight">
             My Blood Requests
@@ -117,9 +113,7 @@ export default function MyBloodRequestsPage() {
             <Droplets className="h-6 w-6 text-primary" />
           </div>
 
-          <h2 className="mt-4 text-lg font-semibold">
-            No blood requests yet
-          </h2>
+          <h2 className="mt-4 text-lg font-semibold">No blood requests yet</h2>
 
           <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
             You haven&apos;t created any blood requests yet. Create a request
@@ -148,7 +142,6 @@ export default function MyBloodRequestsPage() {
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                       <Droplets className="h-5 w-5 text-primary" />
                     </div>
-
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
                         <h2 className="font-semibold">
@@ -197,8 +190,7 @@ export default function MyBloodRequestsPage() {
                         Blood Needed
                       </p>
                       <p className="mt-0.5 text-sm font-medium">
-                        {request.units}{" "}
-                        {request.units === 1 ? "unit" : "units"}
+                        {request.units} {request.units === 1 ? "unit" : "units"}
                       </p>
                     </div>
                   </div>
@@ -207,9 +199,7 @@ export default function MyBloodRequestsPage() {
                     <Hospital className="mt-0.5 h-4 w-4 text-muted-foreground" />
 
                     <div>
-                      <p className="text-xs text-muted-foreground">
-                        Hospital
-                      </p>
+                      <p className="text-xs text-muted-foreground">Hospital</p>
                       <p className="mt-0.5 text-sm font-medium">
                         {request.hospitalName}
                       </p>
@@ -220,9 +210,7 @@ export default function MyBloodRequestsPage() {
                     <MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
 
                     <div>
-                      <p className="text-xs text-muted-foreground">
-                        Location
-                      </p>
+                      <p className="text-xs text-muted-foreground">Location</p>
                       <p className="mt-0.5 text-sm font-medium">
                         {request.city}
                       </p>
@@ -249,11 +237,23 @@ export default function MyBloodRequestsPage() {
                     <p className="text-xs font-medium text-muted-foreground">
                       Description
                     </p>
-                    <p className="mt-1 text-sm">
-                      {request.description}
-                    </p>
+                    <p className="mt-1 text-sm">{request.description}</p>
                   </div>
                 )}
+                <div className="flex items-center gap-2">
+                  <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium">
+                    {request.status}
+                  </span>
+
+                  <Link
+                    href={`/requester/requests/${request.id}`}
+                    className="
+                        inline-flex items-center rounded-md border px-3 py-1.5 text-xs justify-center gap-2 bg-primary font-medium text-primary-foreground transition-colors hover:bg-primary/90
+                        "
+                  >
+                    View Details
+                  </Link>
+                </div>
               </div>
             </article>
           ))}
@@ -262,4 +262,3 @@ export default function MyBloodRequestsPage() {
     </section>
   );
 }
-
