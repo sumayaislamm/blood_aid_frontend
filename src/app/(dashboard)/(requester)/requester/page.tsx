@@ -1,29 +1,35 @@
 "use client";
 
-import { useAuthStore } from "@/src/stores/auth.store";
+import { useQuery } from "@tanstack/react-query";
 
-
+import { getMyBloodRequests } from "@/src/features/blood-requests/blood-requests.api";
 
 export default function RequesterDashboard() {
-  const user = useAuthStore((state) => state.user);
+  const requestsQuery = useQuery({
+    queryKey: ["my-blood-requests"],
+    queryFn: getMyBloodRequests,
+  });
+
+  console.log("MY BLOOD REQUESTS:", requestsQuery.data);
 
   return (
-    <main className="min-h-screen bg-muted/40 p-6">
-      <div className="mx-auto max-w-6xl">
-        <div className="rounded-xl border bg-background p-6 shadow-sm">
-          <p className="text-sm text-muted-foreground">
-            Requester Dashboard
-          </p>
+    <main className="space-y-6">
+      <div>
+        <p className="text-sm text-muted-foreground">
+          Requester Dashboard
+        </p>
 
-          <h1 className="mt-2 text-3xl font-bold">
-            Welcome, {user?.name ?? "Requester"}!
-          </h1>
+        <h1 className="mt-2 text-3xl font-bold">
+          Welcome, Requester!
+        </h1>
+      </div>
 
-          <p className="mt-2 text-muted-foreground">
-            Create and manage blood requests and connect with donors.
-          </p>
-        </div>
+      <div className="rounded-xl border bg-background p-6">
+        <p className="text-sm text-muted-foreground">
+          Check the browser console for the blood request API response.
+        </p>
       </div>
     </main>
   );
 }
+
