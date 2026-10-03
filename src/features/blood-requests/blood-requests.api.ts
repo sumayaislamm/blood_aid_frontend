@@ -38,11 +38,6 @@ export interface BloodRequestItem {
   updatedAt: string;
 }
 
-// export type CreateBloodRequestInput = Omit<
-//   BloodRequestItem,
-//   "id" | "status" | "createdAt" | "updatedAt"
-// >;
-
 export type CreateBloodRequestInput = Omit<
   BloodRequestItem,
   "id" | "status" | "createdAt" | "updatedAt" | "description"
