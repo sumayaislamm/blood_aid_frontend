@@ -73,6 +73,15 @@ export async function getBloodRequestById(
   return apiFetch<ApiResponse<BloodRequestItem>>(`/blood-requests/${id}`);
 }
 
+export async function getBloodRequests(): Promise<
+  PaginatedResponse<BloodRequestItem>
+> {
+  return apiFetch<PaginatedResponse<BloodRequestItem>>(
+    "/blood-requests",
+  );
+}
+
+
 export async function updateBloodRequest(
   id: string,
   data: Partial<CreateBloodRequestInput>,
