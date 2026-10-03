@@ -26,11 +26,43 @@ export interface CreateDonorResponseInput {
 export async function createDonorResponse(
   data: CreateDonorResponseInput,
 ): Promise<ApiResponse<DonorResponseItem>> {
-  return apiFetch<ApiResponse<DonorResponseItem>>(
-    "/donor-responses",
-    {
-      method: "POST",
-      body: JSON.stringify(data),
-    },
+  return apiFetch<ApiResponse<DonorResponseItem>>("/donor-responses", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+
+export interface MyDonorResponseItem extends DonorResponseItem {
+  bloodRequest?: {
+    id: string;
+    bloodGroup: string;
+    units: number;
+    hospitalName: string;
+    hospitalAddress: string;
+    city: string;
+    requiredDate: string;
+    urgency: string;
+    status: string;
+  };
+}
+
+export interface DonorResponsesPagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface MyDonorResponsesResponse {
+  success: boolean;
+  message: string;
+  data: MyDonorResponseItem[];
+  pagination: DonorResponsesPagination;
+}
+
+export async function getMyDonorResponses(): Promise<MyDonorResponsesResponse> {
+  return apiFetch<MyDonorResponsesResponse>(
+    "/donor-responses/my-responses",
   );
 }
