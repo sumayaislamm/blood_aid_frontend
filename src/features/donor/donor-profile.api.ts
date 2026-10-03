@@ -1,19 +1,34 @@
 import { apiFetch } from "@/src/lib/api";
 import type { ApiResponse } from "@/src/types/auth";
 
+// export interface DonorProfile {
+//   id: string;
+//   userId: string;
+//   bloodGroup: string;
+//   dateOfBirth?: string | null;
+//   gender?: string | null;
+//   address?: string | null;
+//   city?: string | null;
+//   lastDonationDate?: string | null;
+//   isAvailable: boolean;
+//   createdAt: string;
+//   updatedAt: string;
+// }
+
 export interface DonorProfile {
   id: string;
   userId: string;
   bloodGroup: string;
-  dateOfBirth?: string | null;
-  gender?: string | null;
-  address?: string | null;
-  city?: string | null;
-  lastDonationDate?: string | null;
-  isAvailable: boolean;
+  dateOfBirth: string;
+  gender: string;
+  city: string;
+  area: string;
+  lastDonationDate: string | null;
   createdAt: string;
   updatedAt: string;
 }
+
+
 
 // export interface CreateDonorProfileInput {
 //   bloodGroup: string;
@@ -24,6 +39,7 @@ export interface DonorProfile {
 //   lastDonationDate?: string;
 //   isAvailable: boolean;
 // }
+
 
 
 export interface CreateDonorProfileInput {
