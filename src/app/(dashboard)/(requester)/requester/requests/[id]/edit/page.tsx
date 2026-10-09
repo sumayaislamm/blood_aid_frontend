@@ -33,9 +33,11 @@ export default function EditBloodRequestPage() {
     mutationFn: (formData: BloodRequestFormValues) =>
       updateBloodRequest(requestId, {
         ...formData,
-        requiredDate: new Date(
-          `${formData.requiredDate}T00:00:00`,
-        ).toISOString(),
+        // requiredDate: new Date(
+        //   `${formData.requiredDate}T00:00:00`,
+        // ).toISOString(),
+        // requiredDate: formData.requiredDate,
+        requiredDate: `${formData.requiredDate}T00:00:00.000Z`,
       }),
 
     onSuccess: () => {

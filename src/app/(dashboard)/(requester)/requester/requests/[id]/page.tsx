@@ -5,7 +5,6 @@ import {
   CalendarDays,
   Droplets,
   Hospital,
-  Loader2,
   MapPin,
   Pencil,
   Syringe,

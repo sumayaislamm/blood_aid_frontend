@@ -55,12 +55,19 @@ const formatLabel = (value: string) => {
   return value.charAt(0) + value.slice(1).toLowerCase();
 };
 
-const formatDate = (value: string) => {
-  if (!value) return "Not provided";
+// const formatDate = (value: string) => {
+//   if (!value) return "Not provided";
 
-  return new Intl.DateTimeFormat("en-US", {
-    dateStyle: "medium",
-  }).format(new Date(value));
+//   return new Intl.DateTimeFormat("en-US", {
+//     dateStyle: "medium",
+//   }).format(new Date(value));
+// };
+
+const formatDate = (value: string) => {
+  const date = value.includes("T") ? value.slice(0, 10) : value;
+  const [year, month, day] = date.split("-");
+
+  return `${day}/${month}/${year}`;
 };
 
 export default function CreateBloodRequestPage() {
@@ -114,13 +121,23 @@ export default function CreateBloodRequestPage() {
     }
   };
 
+  // const onSubmit = (data: BloodRequestFormValues) => {
+  //   const payload = {
+  //     ...data,
+  //     // requiredDate: new Date(`${data.requiredDate}T00:00:00`).toISOString(),
+  //     requiredDate: data.requiredDate,
+  //   };
+  //   createRequestMutation.mutate(payload);
+  // };
+
   const onSubmit = (data: BloodRequestFormValues) => {
-    const payload = {
-      ...data,
-      requiredDate: new Date(`${data.requiredDate}T00:00:00`).toISOString(),
-    };
-    createRequestMutation.mutate(payload);
+  const payload = {
+    ...data,
+    requiredDate: `${data.requiredDate}T00:00:00.000Z`,
   };
+
+  createRequestMutation.mutate(payload);
+};
   return (
     <section className="mx-auto max-w-3xl space-y-6">
       <div>

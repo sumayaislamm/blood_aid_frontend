@@ -64,3 +64,10 @@ export async function getPaymentById(
     `/payments/${paymentId}`,
   );
 }
+export async function getMyPayments(): Promise<
+  ApiResponse<PaymentDetails[]>
+> {
+  return apiFetch<ApiResponse<PaymentDetails[]>>(
+    "/payments/my-payments",
+  );
+}
