@@ -21,17 +21,6 @@ export interface AdminDonationItem {
   };
 }
 
-// export interface AdminDonationsData {
-//   items: AdminDonationItem[];
-//   meta?: {
-//     page: number;
-//     limit: number;
-//     total: number;
-//     totalPages: number;
-//   };
-// }
-
-
 export interface AdminDonationsData {
   donations: AdminDonationItem[];
   pagination: {
@@ -65,5 +54,40 @@ export async function verifyDonation(
     {
       method: "PATCH",
     },
+  );
+}
+
+
+
+export interface AdminAuditLogItem {
+  id: string;
+  action: string;
+  entity: string;
+  entityId: string;
+  details?: unknown;
+  createdAt: string;
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+  };
+}
+
+export interface AdminAuditLogsData {
+  auditLogs: AdminAuditLogItem[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export async function getAdminAuditLogs(): Promise<
+  ApiResponse<AdminAuditLogsData>
+> {
+  return apiFetch<ApiResponse<AdminAuditLogsData>>(
+    "/admin/audit-logs",
   );
 }

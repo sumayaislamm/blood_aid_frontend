@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { CreditCard, HeartPulse, Loader2, Users, Droplets } from "lucide-react";
+import { CreditCard, HeartPulse, Loader2, Users, Droplets, ShieldCheck } from "lucide-react";
 
 import { getAdminStats } from "@/src/features/admin/admin.api";
 
@@ -13,28 +13,34 @@ export default function AdminDashboard() {
 
   const stats = data?.data;
 
-const cards = [
-  {
-    label: "Total Users",
-    value: stats?.users.total ?? 0,
-    icon: Users,
-  },
-  {
-    label: "Blood Requests",
-    value: stats?.bloodRequests.total ?? 0,
-    icon: Droplets,
-  },
-  {
-    label: "Donations",
-    value: stats?.donations.total ?? 0,
-    icon: HeartPulse,
-  },
-  {
-    label: "Payments",
-    value: stats?.payments.total ?? 0,
-    icon: CreditCard,
-  },
-];
+  const cards = [
+    {
+      label: "Total Users",
+      value: stats?.users.total ?? 0,
+      icon: Users,
+    },
+    {
+      label: "Blood Requests",
+      value: stats?.bloodRequests.total ?? 0,
+      icon: Droplets,
+    },
+    {
+      label: "Donations",
+      value: stats?.donations.total ?? 0,
+      icon: HeartPulse,
+    },
+    {
+      label: "Payments",
+      value: stats?.payments.total ?? 0,
+      icon: CreditCard,
+    },
+    {
+      label: "Verified Donations",
+      value: stats?.donations.verified ?? 0,
+      description: `${stats?.donations.total ?? 0} total`,
+      icon: ShieldCheck,
+    },
+  ];
 
   return (
     <section className="space-y-6">
@@ -63,7 +69,7 @@ const cards = [
           </p>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
           {cards.map((card) => {
             const Icon = card.icon;
 
