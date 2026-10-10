@@ -1,6 +1,8 @@
+
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/src/stores/auth.store";
 import {
@@ -34,6 +36,14 @@ const features = [
   },
 ];
 
+const navigationLinks = [
+  { label: "Home", href: "/" },
+  { label: "About", href: "/about" },
+  { label: "Services", href: "/services" },
+  { label: "FAQ", href: "/faq" },
+  { label: "Contact", href: "/contact" },
+];
+
 export default function HomePage() {
   const router = useRouter();
 
@@ -51,35 +61,56 @@ export default function HomePage() {
     : "/login";
 
   function handleLogout() {
-  clearAuthCookie();
-  clearAuth();
-  router.replace("/");
-}
+    clearAuthCookie();
+    clearAuth();
+    router.replace("/");
+  }
+
   return (
     <main className="min-h-screen bg-background">
-      {/* Header */}{" "}
+      {/* Header */}
       <header className="border-b bg-background">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex items-center gap-2">
+        <div className="mx-auto flex min-h-16 max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+          {/* Logo */}
+          <Link href="/" className="flex shrink-0 items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Droplets className="h-5 w-5" />{" "}
+              <Droplets className="h-5 w-5" />
             </div>
             <span className="text-lg font-bold">Blood Aid</span>
           </Link>
 
-          <div className="flex items-center gap-3">
+          {/* Public Navigation */}
+          <nav
+            aria-label="Main navigation"
+            className="order-3 flex w-full flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm md:order-none md:w-auto md:flex-1"
+          >
+            {navigationLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="font-medium text-muted-foreground transition-colors hover:text-primary"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+
+          {/* Authentication Actions */}
+          <div className="flex shrink-0 items-center gap-2">
             {!hasHydrated ? (
-              <div className="h-9 w-32 animate-pulse rounded-md bg-muted" />
+              <div className="h-9 w-24 animate-pulse rounded-md bg-muted sm:w-32" />
             ) : isAuthenticated && user ? (
               <>
                 <div className="hidden text-right sm:block">
                   <p className="text-sm font-semibold">{user.name}</p>
-                  <p className="text-xs text-muted-foreground">{user.role}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {user.role}
+                  </p>
                 </div>
 
                 <Link
                   href={dashboardPath}
-                  className="rounded-md border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
+                  className="rounded-md border px-3 py-2 text-sm font-medium transition-colors hover:bg-muted sm:px-4"
                 >
                   Dashboard
                 </Link>
@@ -87,24 +118,24 @@ export default function HomePage() {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                  className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 sm:px-4"
                 >
                   <LogOut className="h-4 w-4" />
-                  Logout
+                  <span>Logout</span>
                 </button>
               </>
             ) : (
               <>
                 <Link
                   href="/login"
-                  className="rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
+                  className="rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted"
                 >
                   Login
                 </Link>
 
                 <Link
                   href="/register"
-                  className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                  className="rounded-md bg-primary px-3 py-2 text-center text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 sm:px-4"
                 >
                   Become a Donor
                 </Link>
@@ -113,10 +144,24 @@ export default function HomePage() {
           </div>
         </div>
       </header>
+
       {/* Hero */}
       <section className="border-b bg-muted/30">
-        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
-          <div className="mx-auto max-w-3xl text-center">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
+          <div className="mx-auto max-w-4xl text-center">
+            {/* Hero Image */}
+            <div className="mx-auto mb-8 max-w-3xl overflow-hidden rounded-2xl border bg-background shadow-sm">
+              <Image
+                src="/blood-donation.jpg"
+                alt="Blood donation to support patients in need"
+                width={1200}
+                height={600}
+                priority
+                sizes="(max-width: 768px) 100vw, 768px"
+                className="h-auto max-h-[420px] w-full object-cover"
+              />
+            </div>
+
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
               <HeartPulse className="h-7 w-7 text-primary" />
             </div>
@@ -137,14 +182,27 @@ export default function HomePage() {
 
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
               {isAuthenticated && user ? (
-                <Link href={dashboardPath}>Go to Dashboard</Link>
+                <Link
+                  href={dashboardPath}
+                  className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+                >
+                  Go to Dashboard
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
               ) : (
                 <>
-                  <Link className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90" href="/register">
+                  <Link
+                    href="/register"
+                    className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+                  >
                     Become a Donor
                     <ArrowRight className="h-4 w-4" />
                   </Link>
-                  <Link className="inline-flex items-center justify-center rounded-md border bg-background px-6 py-3 text-sm font-semibold transition-colors hover:bg-muted" href="/login">
+
+                  <Link
+                    href="/login"
+                    className="inline-flex items-center justify-center rounded-md border bg-background px-6 py-3 text-sm font-semibold transition-colors hover:bg-muted"
+                  >
                     I Need Blood
                   </Link>
                 </>
@@ -153,6 +211,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
       {/* Features */}
       <section className="py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -177,7 +236,7 @@ export default function HomePage() {
               return (
                 <div
                   key={feature.title}
-                  className="rounded-xl border bg-background p-6 shadow-sm"
+                  className="rounded-xl border bg-background p-6 shadow-sm transition-shadow hover:shadow-md"
                 >
                   <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
                     <Icon className="h-5 w-5 text-primary" />
@@ -196,28 +255,61 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-      {/* CTA */}
+
+      {/* Call to Action */}
       <section className="border-t bg-muted/30 py-16">
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
-          <h2 className="text-3xl font-bold">Ready to help someone in need?</h2>
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+            <HeartPulse className="h-6 w-6 text-primary" />
+          </div>
+
+          <h2 className="mt-4 text-3xl font-bold">
+            Ready to help someone in need?
+          </h2>
 
           <p className="mt-4 text-muted-foreground">
             Create your account and become part of the Blood Aid community.
           </p>
 
           {isAuthenticated && user ? (
-            <Link href={dashboardPath}>Go to Dashboard</Link>
+            <Link
+              href={dashboardPath}
+              className="mt-6 inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Go to Dashboard
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           ) : (
-            <Link href="/register">Get Started</Link>
+            <Link
+              href="/register"
+              className="mt-6 inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Get Started
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           )}
         </div>
       </section>
+
       {/* Footer */}
       <footer className="border-t">
-        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
           <p>© {new Date().getFullYear()} Blood Aid. All rights reserved.</p>
 
-          <p>Connecting donors with people who need blood.</p>
+          <nav aria-label="Footer navigation" className="flex flex-wrap gap-4">
+            <Link href="/about" className="hover:text-primary">
+              About
+            </Link>
+            <Link href="/services" className="hover:text-primary">
+              Services
+            </Link>
+            <Link href="/faq" className="hover:text-primary">
+              FAQ
+            </Link>
+            <Link href="/contact" className="hover:text-primary">
+              Contact
+            </Link>
+          </nav>
         </div>
       </footer>
     </main>
