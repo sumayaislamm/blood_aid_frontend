@@ -1,12 +1,7 @@
-
 "use client";
 
 import { Suspense, useCallback, useEffect, useState } from "react";
-import {
-  usePathname,
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   keepPreviousData,
   useMutation,
@@ -46,6 +41,7 @@ const roleStyles: Record<UserRole, string> = {
 const validRoles: UserRole[] = ["ADMIN", "DONOR", "REQUESTER"];
 const validStatuses: UserStatus[] = ["ACTIVE", "BLOCKED", "DELETED"];
 
+
 type UserSearchInputProps = {
   value: string;
   onSearch: (value: string) => void;
@@ -58,6 +54,12 @@ function UserSearchInput({
   onTyping,
 }: UserSearchInputProps) {
   const [search, setSearch] = useState(value);
+  const [previousValue, setPreviousValue] = useState(value);
+
+  if (value !== previousValue) {
+    setPreviousValue(value);
+    setSearch(value);
+  }
 
   useEffect(() => {
     const trimmedSearch = search.trim();
@@ -94,6 +96,7 @@ function UserSearchInput({
   );
 }
 
+
 function AdminUsersContent() {
   const router = useRouter();
   const pathname = usePathname();
@@ -105,9 +108,7 @@ function AdminUsersContent() {
   const statusParam = searchParams.get("status") ?? "ALL";
   const pageParam = Number(searchParams.get("page") ?? "1");
 
-  const role: UserRole | "ALL" = validRoles.includes(
-    roleParam as UserRole,
-  )
+  const role: UserRole | "ALL" = validRoles.includes(roleParam as UserRole)
     ? (roleParam as UserRole)
     : "ALL";
 
@@ -117,8 +118,7 @@ function AdminUsersContent() {
     ? (statusParam as UserStatus)
     : "ALL";
 
-  const page =
-    Number.isSafeInteger(pageParam) && pageParam > 0 ? pageParam : 1;
+  const page = Number.isSafeInteger(pageParam) && pageParam > 0 ? pageParam : 1;
 
   const [feedback, setFeedback] = useState("");
 
@@ -153,13 +153,7 @@ function AdminUsersContent() {
     [updateUrl],
   );
 
-  const {
-    data,
-    isLoading,
-    isError,
-    refetch,
-    isFetching,
-  } = useQuery({
+  const { data, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: [
       "admin-users",
       { page, limit: PAGE_SIZE, search: urlSearch, role, status },
@@ -307,7 +301,6 @@ function AdminUsersContent() {
       <div className="rounded-xl border bg-background p-4 shadow-sm">
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <UserSearchInput
-            key={urlSearch}
             value={urlSearch}
             onSearch={handleSearch}
             onTyping={() => setFeedback("")}
@@ -462,8 +455,7 @@ function AdminUsersContent() {
                             type="button"
                             onClick={() => handleToggleStatus(user)}
                             disabled={
-                              statusMutation.isPending ||
-                              user.role === "ADMIN"
+                              statusMutation.isPending || user.role === "ADMIN"
                             }
                             title={
                               user.role === "ADMIN"
@@ -505,6 +497,11 @@ function AdminUsersContent() {
             <div className="flex items-center gap-2">
               <button
                 type="button"
+                // onClick={() =>
+                //   updateUrl({
+                //     page: page > 2 ? String(page - 1) : null,
+                //   })
+                // }
                 onClick={() =>
                   updateUrl({
                     page: page > 2 ? String(page - 1) : null,
@@ -530,14 +527,12 @@ function AdminUsersContent() {
       )}
 
       {isFetching && !isLoading && (
-        <p className="text-xs text-muted-foreground">
-          Updating user list...
-        </p>
+        <p className="text-xs text-muted-foreground">Updating user list...</p>
       )}
 
       <p className="text-xs leading-5 text-muted-foreground">
-        Account status changes must be authorized and validated by the
-        backend. This page does not allow blocking admin accounts.
+        Account status changes must be authorized and validated by the backend.
+        This page does not allow blocking admin accounts.
       </p>
     </section>
   );

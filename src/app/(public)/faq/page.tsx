@@ -2,9 +2,18 @@
 import Link from "next/link";
 import { Droplets } from "lucide-react";
 
-export const metadata = {
-  title: "FAQ | Blood Aid",
-  description: "Frequently asked questions about using Blood Aid.",
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Frequently Asked Questions",
+  description:
+    "Find answers to common questions about using Blood Aid.",
+  openGraph: {
+    title: "FAQ | Blood Aid",
+    description:
+      "Discover the mission and purpose behind Blood Aid.",
+    images: ["/opengraph-image.png"],
+  },
 };
 
 const faqs = [

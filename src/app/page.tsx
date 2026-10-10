@@ -147,7 +147,7 @@ export default function HomePage() {
 
       {/* Hero */}
       <section className="border-b bg-muted/30">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-14">
           <div className="mx-auto max-w-4xl text-center">
             {/* Hero Image */}
             <div className="mx-auto mb-8 max-w-3xl overflow-hidden rounded-2xl border bg-background shadow-sm">

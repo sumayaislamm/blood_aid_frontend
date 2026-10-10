@@ -2,10 +2,21 @@
 import Link from "next/link";
 import { Droplets, Mail, MessageCircle } from "lucide-react";
 
-export const metadata = {
-  title: "Contact Us | Blood Aid",
-  description: "Find out how to contact the Blood Aid team.",
+
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Contact Us",
+  description:
+    "Learn about Blood Aid's mission to connect blood donors with people in need.",
+  openGraph: {
+    title: "Contact Us | Blood Aid",
+    description:
+      "Discover the mission and purpose behind Blood Aid.",
+    images: ["/opengraph-image.png"],
+  },
 };
+
 
 export default function ContactPage() {
   return (

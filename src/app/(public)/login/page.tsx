@@ -1,7 +1,3 @@
-
-
-
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -31,14 +27,14 @@ const demoAccounts = [
   },
   {
     label: "Demo Donor",
-    email: "sumaya@gmail.com",
-    password: "Sumaya56%%",
+    email: "donor@bloodaid.com",
+    password: "Donor56%%",
     role: "DONOR",
   },
   {
     label: "Demo Requester",
-    email: "rancy@bloodaid.com",
-    password: "Rancy56%%",
+    email: "requester@bloodaid.com",
+    password: "Requester56%%",
     role: "REQUESTER",
   },
 ] as const;

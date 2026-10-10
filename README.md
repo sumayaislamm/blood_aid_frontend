@@ -19,6 +19,8 @@ The login page has one-click **Demo Login** buttons for each role. You can also 
 
 |---|---|---|
 | Admin | `admin@bloodaid.com` | `Admin56%%` |
+| Requester | `requester@bloodaid.com` | `Requester56%%` |
+| Donor | `donor@bloodaid.com` | `Donor56%%` |
 
 **Stripe test card:** `4242 4242 4242 4242`, any future expiry date, any CVC.
 

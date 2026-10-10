@@ -1,10 +1,18 @@
+
 "use client";
+
 import { useQuery } from "@tanstack/react-query";
 import { Droplets, Loader2, MapPin, CalendarDays } from "lucide-react";
 import { getBloodRequests } from "@/src/features/blood-requests/blood-requests.api";
 import { useState } from "react";
 import { createDonorResponse } from "@/src/features/donor-responses/donor-responses.api";
 import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  donorResponseSchema,
+  type DonorResponseFormValues,
+} from "@/src/lib/validations/donor.schemas";
 
 function formatBloodGroup(bloodGroup: string) {
   return bloodGroup.replace("_", " ");
@@ -18,8 +26,18 @@ function formatDate(date: string) {
 
 export default function DonorRequestsPage() {
   const [respondingId, setRespondingId] = useState<string | null>(null);
-  const [message, setMessage] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<DonorResponseFormValues>({
+    resolver: zodResolver(donorResponseSchema),
+    defaultValues: {
+      message: "",
+    },
+  });
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["blood-requests"],
@@ -27,6 +45,33 @@ export default function DonorRequestsPage() {
   });
 
   const requests = data?.data ?? [];
+
+  const handleCancel = () => {
+    setRespondingId(null);
+    reset({ message: "" });
+  };
+
+  const handleRespond = async (values: DonorResponseFormValues) => {
+    if (!respondingId) return;
+
+    try {
+      await createDonorResponse({
+        bloodRequestId: respondingId,
+        ...(values.message ? { message: values.message } : {}),
+      });
+
+      toast.success("Response sent successfully.");
+
+      setRespondingId(null);
+      reset({ message: "" });
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to send response.",
+      );
+    }
+  };
 
   return (
     <section className="space-y-6">
@@ -64,7 +109,9 @@ export default function DonorRequestsPage() {
         <div className="rounded-xl border border-dashed p-10 text-center">
           <Droplets className="mx-auto h-10 w-10 text-primary" />
 
-          <h2 className="mt-4 font-semibold">No blood requests available</h2>
+          <h2 className="mt-4 font-semibold">
+            No blood requests available
+          </h2>
 
           <p className="mt-1 text-sm text-muted-foreground">
             There are currently no active blood requests.
@@ -91,8 +138,8 @@ export default function DonorRequestsPage() {
                     </h2>
 
                     <p className="mt-1 text-sm text-muted-foreground">
-                      {request.units} {request.units === 1 ? "unit" : "units"}{" "}
-                      needed
+                      {request.units}{" "}
+                      {request.units === 1 ? "unit" : "units"} needed
                     </p>
                   </div>
                 </div>
@@ -101,108 +148,103 @@ export default function DonorRequestsPage() {
                   {request.urgency}
                 </span>
               </div>
+
               <div className="mt-5 grid gap-3 text-sm sm:grid-cols-2">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
-
                   <span>{request.city}</span>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <CalendarDays className="h-4 w-4 text-muted-foreground" />
-
                   <span>{formatDate(request.requiredDate)}</span>
                 </div>
               </div>
+
               <div className="mt-4">
-                <p className="text-sm font-medium">{request.hospitalName}</p>
+                <p className="text-sm font-medium">
+                  {request.hospitalName}
+                </p>
 
                 <p className="mt-1 text-sm text-muted-foreground">
                   {request.hospitalAddress}
                 </p>
               </div>
-              {/* <div className="mt-5 flex justify-end">
-                <button
-                  type="button"
-                  className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-                >
-                  Respond to Request
-                </button>
-              </div> */}
 
               <div className="mt-5">
                 {respondingId === request.id ? (
-                  <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
+                  <form
+                    onSubmit={handleSubmit(handleRespond)}
+                    className="space-y-3 rounded-lg border bg-muted/30 p-4"
+                  >
                     <div>
                       <label
                         htmlFor={`message-${request.id}`}
                         className="text-sm font-medium"
                       >
-                        Message
+                        Message{" "}
+                        <span className="text-muted-foreground">
+                          (Optional)
+                        </span>
                       </label>
 
                       <textarea
                         id={`message-${request.id}`}
-                        value={message}
-                        onChange={(event) => setMessage(event.target.value)}
+                        {...register("message")}
                         placeholder="Write a short message to the requester..."
                         rows={3}
+                        maxLength={1000}
+                        aria-invalid={!!errors.message}
+                        aria-describedby={
+                          errors.message
+                            ? `message-error-${request.id}`
+                            : undefined
+                        }
                         className="mt-2 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
                       />
+
+                      {errors.message && (
+                        <p
+                          id={`message-error-${request.id}`}
+                          role="alert"
+                          className="mt-1 text-sm text-destructive"
+                        >
+                          {errors.message.message}
+                        </p>
+                      )}
+
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Maximum 1000 characters.
+                      </p>
                     </div>
 
                     <div className="flex justify-end gap-2">
                       <button
                         type="button"
-                        onClick={() => {
-                          setRespondingId(null);
-                          setMessage("");
-                        }}
-                        className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
+                        onClick={handleCancel}
                         disabled={isSubmitting}
+                        className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         Cancel
                       </button>
 
                       <button
-                        type="button"
+                        type="submit"
                         disabled={isSubmitting}
-                        onClick={async () => {
-                          try {
-                            setIsSubmitting(true);
-
-                            await createDonorResponse({
-                              bloodRequestId: request.id,
-                              ...(message.trim()
-                                ? { message: message.trim() }
-                                : {}),
-                            });
-
-                            toast.success("Response sent successfully.");
-
-                            setRespondingId(null);
-                            setMessage("");
-                          } catch (error) {
-                            toast.error(
-                              error instanceof Error
-                                ? error.message
-                                : "Failed to send response.",
-                            );
-                          } finally {
-                            setIsSubmitting(false);
-                          }
-                        }}
                         className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {isSubmitting ? "Sending..." : "Send Response"}
                       </button>
                     </div>
-                  </div>
+                  </form>
                 ) : (
                   <div className="flex justify-end">
                     <button
                       type="button"
-                      onClick={() => setRespondingId(request.id)}
+                      onClick={() => {
+                        reset({ message: "" });
+                        setRespondingId(request.id);
+                      }}
                       className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                     >
                       Respond to Request

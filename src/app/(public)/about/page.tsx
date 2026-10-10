@@ -2,11 +2,21 @@
 import Link from "next/link";
 import { Droplets, HeartHandshake, ShieldCheck, Users } from "lucide-react";
 
-export const metadata = {
-  title: "About Us | Blood Aid",
+
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "About Us",
   description:
-    "Learn how Blood Aid connects blood donors with people who need blood.",
+    "Learn about Blood Aid's mission to connect blood donors with people in need.",
+  openGraph: {
+    title: "About Us | Blood Aid",
+    description:
+      "Discover the mission and purpose behind Blood Aid.",
+    images: ["/opengraph-image.png"],
+  },
 };
+
 
 export default function AboutPage() {
   return (
