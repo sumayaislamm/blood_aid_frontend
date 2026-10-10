@@ -122,11 +122,52 @@ export interface AdminAuditLogsData {
   };
 }
 
-export async function getAdminAuditLogs(): Promise<
-  ApiResponse<AdminAuditLogsData>
-> {
-  return apiFetch<ApiResponse<AdminAuditLogsData>>("/admin/audit-logs");
+
+export interface AdminAuditLogsParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  action?: string;
+  entity?: string;
+  userId?: string;
+  sortOrder?: "asc" | "desc";
 }
+
+export async function getAdminAuditLogs(
+  params: AdminAuditLogsParams = {},
+): Promise<ApiResponse<AdminAuditLogsData>> {
+  const searchParams = new URLSearchParams();
+
+  searchParams.set("page", String(params.page ?? 1));
+  searchParams.set("limit", String(params.limit ?? 10));
+  searchParams.set("sortOrder", params.sortOrder ?? "desc");
+
+  if (params.search?.trim()) {
+    searchParams.set("search", params.search.trim());
+  }
+
+  if (params.action) {
+    searchParams.set("action", params.action);
+  }
+
+  if (params.entity) {
+    searchParams.set("entity", params.entity);
+  }
+
+  if (params.userId) {
+    searchParams.set("userId", params.userId);
+  }
+
+  return apiFetch<ApiResponse<AdminAuditLogsData>>(
+    `/admin/audit-logs?${searchParams.toString()}`,
+  );
+}
+
+// export async function getAdminAuditLogs(): Promise<
+//   ApiResponse<AdminAuditLogsData>
+// > {
+//   return apiFetch<ApiResponse<AdminAuditLogsData>>("/admin/audit-logs");
+// }
 
 export interface AdminUserItem {
   id: string;
