@@ -1,105 +1,3 @@
-// "use client";
-
-// import { useQuery } from "@tanstack/react-query";
-// import { CreditCard, HeartPulse, Loader2, Users, Droplets, ShieldCheck } from "lucide-react";
-
-// import { getAdminStats } from "@/src/features/admin/admin.api";
-
-// export default function AdminDashboard() {
-//   const { data, isLoading, isError } = useQuery({
-//     queryKey: ["admin-stats"],
-//     queryFn: getAdminStats,
-//   });
-
-//   const stats = data?.data;
-
-//   const cards = [
-//     {
-//       label: "Total Users",
-//       value: stats?.users.total ?? 0,
-//       icon: Users,
-//     },
-//     {
-//       label: "Blood Requests",
-//       value: stats?.bloodRequests.total ?? 0,
-//       icon: Droplets,
-//     },
-//     {
-//       label: "Donations",
-//       value: stats?.donations.total ?? 0,
-//       icon: HeartPulse,
-//     },
-//     {
-//       label: "Payments",
-//       value: stats?.payments.total ?? 0,
-//       icon: CreditCard,
-//     },
-//     {
-//       label: "Verified Donations",
-//       value: stats?.donations.verified ?? 0,
-//       description: `${stats?.donations.total ?? 0} total`,
-//       icon: ShieldCheck,
-//     },
-//   ];
-
-//   return (
-//     <section className="space-y-6">
-//       <div>
-//         <p className="text-sm text-muted-foreground">Administration</p>
-//         <h2 className="mt-1 text-2xl font-bold tracking-tight">Overview</h2>
-//         <p className="mt-1 text-sm text-muted-foreground">
-//           Monitor users, blood requests, donations, and payments.
-//         </p>
-//       </div>
-
-//       {isLoading ? (
-//         <div className="flex min-h-48 items-center justify-center rounded-xl border bg-background">
-//           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-//             <Loader2 className="h-4 w-4 animate-spin" />
-//             Loading dashboard statistics...
-//           </div>
-//         </div>
-//       ) : isError ? (
-//         <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6">
-//           <h3 className="font-semibold text-destructive">
-//             Unable to load dashboard statistics
-//           </h3>
-//           <p className="mt-1 text-sm text-muted-foreground">
-//             Please try again in a moment.
-//           </p>
-//         </div>
-//       ) : (
-//         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-//           {cards.map((card) => {
-//             const Icon = card.icon;
-
-//             return (
-//               <div
-//                 key={card.label}
-//                 className="rounded-xl border bg-background p-5 shadow-sm"
-//               >
-//                 <div className="flex items-center justify-between">
-//                   <p className="text-sm font-medium text-muted-foreground">
-//                     {card.label}
-//                   </p>
-
-//                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-//                     <Icon className="h-5 w-5 text-primary" />
-//                   </div>
-//                 </div>
-
-//                 <p className="mt-4 text-3xl font-bold">{card.value}</p>
-//               </div>
-//             );
-//           })}
-//         </div>
-//       )}
-//     </section>
-//   );
-// }
-
-
-
 
 "use client";
 
@@ -118,6 +16,22 @@ import {
 
 import { getAdminStats } from "@/src/features/admin/admin.api";
 
+const formatNumber = (value: number) =>
+  value.toLocaleString("en-BD");
+
+const formatBDT = (value: number) =>
+  new Intl.NumberFormat("en-BD", {
+    style: "currency",
+    currency: "BDT",
+    maximumFractionDigits: 2,
+  }).format(value);
+
+const safeCount = (value: unknown): number => {
+  const parsed = Number(value);
+
+  return Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
+};
+
 export default function AdminDashboard() {
   const {
     data,
@@ -132,19 +46,31 @@ export default function AdminDashboard() {
 
   const stats = data?.data;
 
-  const totalUsers = stats?.users?.total ?? 0;
-  const totalRequests = stats?.bloodRequests?.total ?? 0;
-  const totalDonations = stats?.donations?.total ?? 0;
-  const verifiedDonations = stats?.donations?.verified ?? 0;
-  const totalPayments = stats?.payments?.total ?? 0;
+  const totalUsers = safeCount(stats?.users?.total);
+  const totalRequests = safeCount(stats?.bloodRequests?.total);
+  const pendingRequests = safeCount(stats?.bloodRequests?.pending);
+
+  const totalDonations = safeCount(stats?.donations?.total);
+  const completedDonations = safeCount(stats?.donations?.completed);
+  const verifiedDonations = safeCount(stats?.donations?.verified);
+
+  const totalPayments = safeCount(stats?.payments?.total);
+  const paidPayments = safeCount(stats?.payments?.paid);
+  const pendingPayments = safeCount(stats?.payments?.pending);
+  const paidAmount = safeCount(stats?.payments?.paidAmount);
 
   const verificationRate =
     totalDonations > 0
       ? Math.min(
           100,
-          Math.round((verifiedDonations / totalDonations) * 100)
+          Math.round((verifiedDonations / totalDonations) * 100),
         )
       : 0;
+
+  const notVerifiedDonations = Math.max(
+    0,
+    totalDonations - verifiedDonations,
+  );
 
   const cards = [
     {
@@ -306,7 +232,7 @@ export default function AdminDashboard() {
               </div>
 
               <p className="mt-4 text-3xl font-bold tracking-tight">
-                {card.value.toLocaleString()}
+                {formatNumber(card.value)}
               </p>
 
               <p className="mt-2 text-xs text-muted-foreground">
@@ -319,7 +245,7 @@ export default function AdminDashboard() {
 
       {/* Analytics */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Overview chart */}
+        {/* Platform Overview */}
         <div className="rounded-xl border bg-background p-5 shadow-sm">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
@@ -347,8 +273,16 @@ export default function AdminDashboard() {
                 value: totalRequests,
               },
               {
+                label: "Pending Requests",
+                value: pendingRequests,
+              },
+              {
                 label: "Donations",
                 value: totalDonations,
+              },
+              {
+                label: "Completed Donations",
+                value: completedDonations,
               },
               {
                 label: "Payments",
@@ -358,14 +292,14 @@ export default function AdminDashboard() {
 
             const maxValue = Math.max(
               ...metrics.map((item) => item.value),
-              1
+              1,
             );
 
             return (
               <div className="mt-6 space-y-5">
                 {metrics.map((item) => {
                   const percentage = Math.round(
-                    (item.value / maxValue) * 100
+                    (item.value / maxValue) * 100,
                   );
 
                   return (
@@ -376,7 +310,7 @@ export default function AdminDashboard() {
                         </span>
 
                         <span className="text-sm tabular-nums text-muted-foreground">
-                          {item.value.toLocaleString()}
+                          {formatNumber(item.value)}
                         </span>
                       </div>
 
@@ -405,7 +339,7 @@ export default function AdminDashboard() {
           </p>
         </div>
 
-        {/* Donation verification */}
+        {/* Donation Verification */}
         <div className="rounded-xl border bg-background p-5 shadow-sm">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
@@ -429,7 +363,7 @@ export default function AdminDashboard() {
                 background: `conic-gradient(var(--primary) ${verificationRate}%, hsl(var(--muted)) ${verificationRate}% 100%)`,
               }}
               role="img"
-              aria-label={`${verificationRate}% of donations verified`}
+              aria-label={`${verificationRate}% of all donations verified`}
             >
               <div className="flex h-32 w-32 flex-col items-center justify-center rounded-full bg-background">
                 <span className="text-3xl font-bold">
@@ -447,7 +381,7 @@ export default function AdminDashboard() {
                   Verified
                 </p>
                 <p className="mt-1 text-2xl font-bold">
-                  {verifiedDonations.toLocaleString()}
+                  {formatNumber(verifiedDonations)}
                 </p>
               </div>
 
@@ -456,18 +390,20 @@ export default function AdminDashboard() {
                   Not verified
                 </p>
                 <p className="mt-1 text-2xl font-bold">
-                  {Math.max(
-                    0,
-                    totalDonations - verifiedDonations
-                  ).toLocaleString()}
+                  {formatNumber(notVerifiedDonations)}
                 </p>
               </div>
             </div>
+
+            <p className="mt-4 text-center text-xs text-muted-foreground">
+              Rate = verified donations ÷ all donations. Not verified includes
+              donations in every other status.
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Summary */}
+      {/* Administration Summary */}
       <div className="rounded-xl border bg-background p-5 shadow-sm">
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-5 w-5 text-primary" />
@@ -482,6 +418,45 @@ export default function AdminDashboard() {
           Payments management pages to review individual records and
           perform administrative actions.
         </p>
+
+        {/* Payment analytics */}
+        <div className="mt-5 grid gap-4 sm:grid-cols-3">
+          <div className="rounded-lg border p-4">
+            <p className="text-sm text-muted-foreground">
+              Paid Payments
+            </p>
+            <p className="mt-1 text-2xl font-bold">
+              {formatNumber(paidPayments)}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Successfully paid transactions
+            </p>
+          </div>
+
+          <div className="rounded-lg border p-4">
+            <p className="text-sm text-muted-foreground">
+              Pending Payments
+            </p>
+            <p className="mt-1 text-2xl font-bold">
+              {formatNumber(pendingPayments)}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Awaiting payment completion
+            </p>
+          </div>
+
+          <div className="rounded-lg border p-4">
+            <p className="text-sm text-muted-foreground">
+              Total Paid Amount
+            </p>
+            <p className="mt-1 break-words text-2xl font-bold">
+              {formatBDT(paidAmount)}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Sum of payments marked PAID
+            </p>
+          </div>
+        </div>
       </div>
     </section>
   );

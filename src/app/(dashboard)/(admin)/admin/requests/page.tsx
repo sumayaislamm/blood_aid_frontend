@@ -1,8 +1,19 @@
 
 "use client";
 
-import { useState } from "react";
 import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
+import {
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
+import {
+  keepPreviousData,
   useMutation,
   useQuery,
   useQueryClient,
@@ -103,19 +114,141 @@ function urgencyClass(urgency: BloodRequestUrgency) {
   }
 }
 
-export default function AdminBloodRequestsPage() {
+type DebouncedInputProps = {
+  id: string;
+  value: string;
+  placeholder: string;
+  icon: "search" | "map";
+  onCommit: (value: string) => void;
+  onTyping: () => void;
+};
+
+function DebouncedInput({
+  id,
+  value,
+  placeholder,
+  icon,
+  onCommit,
+  onTyping,
+}: DebouncedInputProps) {
+  const [draft, setDraft] = useState(value);
+
+  useEffect(() => {
+    const trimmedValue = draft.trim();
+
+    if (trimmedValue === value) return;
+
+    const timer = setTimeout(() => {
+      onCommit(trimmedValue);
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [draft, value, onCommit]);
+
+  const Icon = icon === "search" ? Search : MapPin;
+
+  return (
+    <div className={`relative ${icon === "search" ? "xl:col-span-2" : ""}`}>
+      <Icon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+
+      <label htmlFor={id} className="sr-only">
+        {placeholder}
+      </label>
+
+      <input
+        id={id}
+        type={icon === "search" ? "search" : "text"}
+        value={draft}
+        onChange={(event) => {
+          setDraft(event.target.value);
+          onTyping();
+        }}
+        placeholder={placeholder}
+        className="w-full rounded-lg border bg-background py-2.5 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+      />
+    </div>
+  );
+}
+
+function AdminBloodRequestsContent() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
 
-  const [search, setSearch] = useState("");
-  const [city, setCity] = useState("");
-  const [bloodGroup, setBloodGroup] =
-    useState<BloodGroup | "ALL">("ALL");
-  const [urgency, setUrgency] =
-    useState<BloodRequestUrgency | "ALL">("ALL");
-  const [status, setStatus] =
-    useState<BloodRequestStatus | "ALL">("ALL");
-  const [page, setPage] = useState(1);
+  const search = searchParams.get("search") ?? "";
+  const city = searchParams.get("city") ?? "";
+
+  const bloodGroupParam = searchParams.get("bloodGroup") ?? "ALL";
+  const urgencyParam = searchParams.get("urgency") ?? "ALL";
+  const statusParam = searchParams.get("status") ?? "ALL";
+  const pageParam = Number(searchParams.get("page") ?? "1");
+
+  const bloodGroup: BloodGroup | "ALL" = BLOOD_GROUPS.includes(
+    bloodGroupParam as BloodGroup,
+  )
+    ? (bloodGroupParam as BloodGroup)
+    : "ALL";
+
+  const urgency: BloodRequestUrgency | "ALL" = URGENCIES.includes(
+    urgencyParam as BloodRequestUrgency,
+  )
+    ? (urgencyParam as BloodRequestUrgency)
+    : "ALL";
+
+  const status: BloodRequestStatus | "ALL" = STATUSES.includes(
+    statusParam as BloodRequestStatus,
+  )
+    ? (statusParam as BloodRequestStatus)
+    : "ALL";
+
+  const page =
+    Number.isSafeInteger(pageParam) && pageParam > 0
+      ? pageParam
+      : 1;
+
   const [feedback, setFeedback] = useState("");
+
+  const updateUrl = useCallback(
+    (updates: Record<string, string | null>) => {
+      const params = new URLSearchParams(searchParams.toString());
+
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value === null || value === "") {
+          params.delete(key);
+        } else {
+          params.set(key, value);
+        }
+      });
+
+      const query = params.toString();
+
+      router.replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false,
+      });
+    },
+    [pathname, router, searchParams],
+  );
+
+  const handleSearchCommit = useCallback(
+    (value: string) => {
+      updateUrl({
+        search: value || null,
+        page: null,
+      });
+    },
+    [updateUrl],
+  );
+
+  const handleCityCommit = useCallback(
+    (value: string) => {
+      updateUrl({
+        city: value || null,
+        page: null,
+      });
+    },
+    [updateUrl],
+  );
 
   const {
     data,
@@ -126,7 +259,15 @@ export default function AdminBloodRequestsPage() {
   } = useQuery({
     queryKey: [
       "admin-blood-requests",
-      { page, search, city, bloodGroup, urgency, status },
+      {
+        page,
+        limit: PAGE_SIZE,
+        search,
+        city,
+        bloodGroup,
+        urgency,
+        status,
+      },
     ],
     queryFn: () =>
       getAdminBloodRequests({
@@ -140,6 +281,7 @@ export default function AdminBloodRequestsPage() {
         sortBy: "createdAt",
         sortOrder: "desc",
       }),
+    placeholderData: keepPreviousData,
   });
 
   const requests = data?.data?.bloodRequests ?? [];
@@ -180,8 +322,14 @@ export default function AdminBloodRequestsPage() {
     },
   });
 
-  function changeFilters() {
-    setPage(1);
+  function handleFilterChange(
+    key: "bloodGroup" | "urgency" | "status",
+    value: string,
+  ) {
+    updateUrl({
+      [key]: value === "ALL" ? null : value,
+      page: null,
+    });
     setFeedback("");
   }
 
@@ -276,44 +424,25 @@ export default function AdminBloodRequestsPage() {
       {/* Filters */}
       <div className="rounded-xl border bg-background p-4 shadow-sm">
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          <div className="relative xl:col-span-2">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <DebouncedInput
+            key={`search-${search}`}
+            id="request-search"
+            value={search}
+            placeholder="Search hospital, address, city..."
+            icon="search"
+            onCommit={handleSearchCommit}
+            onTyping={() => setFeedback("")}
+          />
 
-            <label htmlFor="request-search" className="sr-only">
-              Search blood requests
-            </label>
-
-            <input
-              id="request-search"
-              type="search"
-              value={search}
-              onChange={(event) => {
-                setSearch(event.target.value);
-                changeFilters();
-              }}
-              placeholder="Search hospital, address, city..."
-              className="w-full rounded-lg border bg-background py-2.5 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-primary/30"
-            />
-          </div>
-
-          <div className="relative">
-            <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-
-            <label htmlFor="request-city" className="sr-only">
-              Filter by city
-            </label>
-
-            <input
-              id="request-city"
-              value={city}
-              onChange={(event) => {
-                setCity(event.target.value);
-                changeFilters();
-              }}
-              placeholder="Filter by city"
-              className="w-full rounded-lg border bg-background py-2.5 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-primary/30"
-            />
-          </div>
+          <DebouncedInput
+            key={`city-${city}`}
+            id="request-city"
+            value={city}
+            placeholder="Filter by city"
+            icon="map"
+            onCommit={handleCityCommit}
+            onTyping={() => setFeedback("")}
+          />
 
           <div>
             <label htmlFor="request-blood-group" className="sr-only">
@@ -323,10 +452,9 @@ export default function AdminBloodRequestsPage() {
             <select
               id="request-blood-group"
               value={bloodGroup}
-              onChange={(event) => {
-                setBloodGroup(event.target.value as BloodGroup | "ALL");
-                changeFilters();
-              }}
+              onChange={(event) =>
+                handleFilterChange("bloodGroup", event.target.value)
+              }
               className="w-full rounded-lg border bg-background px-3 py-2.5 text-sm"
             >
               <option value="ALL">All blood groups</option>
@@ -346,12 +474,9 @@ export default function AdminBloodRequestsPage() {
             <select
               id="request-urgency"
               value={urgency}
-              onChange={(event) => {
-                setUrgency(
-                  event.target.value as BloodRequestUrgency | "ALL",
-                );
-                changeFilters();
-              }}
+              onChange={(event) =>
+                handleFilterChange("urgency", event.target.value)
+              }
               className="w-full rounded-lg border bg-background px-3 py-2.5 text-sm"
             >
               <option value="ALL">All urgency levels</option>
@@ -371,12 +496,9 @@ export default function AdminBloodRequestsPage() {
             <select
               id="request-status"
               value={status}
-              onChange={(event) => {
-                setStatus(
-                  event.target.value as BloodRequestStatus | "ALL",
-                );
-                changeFilters();
-              }}
+              onChange={(event) =>
+                handleFilterChange("status", event.target.value)
+              }
               className="w-full rounded-lg border bg-background px-3 py-2.5 text-sm"
             >
               <option value="ALL">All statuses</option>
@@ -618,7 +740,9 @@ export default function AdminBloodRequestsPage() {
               <button
                 type="button"
                 onClick={() =>
-                  setPage((current) => Math.max(1, current - 1))
+                  updateUrl({
+                    page: page > 2 ? String(page - 1) : null,
+                  })
                 }
                 disabled={page <= 1 || isFetching}
                 className="rounded-lg border px-3 py-2 text-sm hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
@@ -629,9 +753,7 @@ export default function AdminBloodRequestsPage() {
               <button
                 type="button"
                 onClick={() =>
-                  setPage((current) =>
-                    Math.min(totalPages, current + 1),
-                  )
+                  updateUrl({ page: String(page + 1) })
                 }
                 disabled={page >= totalPages || isFetching}
                 className="rounded-lg border px-3 py-2 text-sm hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
@@ -643,10 +765,33 @@ export default function AdminBloodRequestsPage() {
         </div>
       )}
 
+      {isFetching && !isLoading && (
+        <p className="text-xs text-muted-foreground">
+          Updating blood requests...
+        </p>
+      )}
+
       <p className="text-xs leading-5 text-muted-foreground">
         Status changes are saved through the backend. Each successful
         change should also create an audit log entry.
       </p>
     </section>
+  );
+}
+
+export default function AdminBloodRequestsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-48 items-center justify-center gap-2 rounded-xl border">
+          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+          <span className="text-sm text-muted-foreground">
+            Loading blood requests...
+          </span>
+        </div>
+      }
+    >
+      <AdminBloodRequestsContent />
+    </Suspense>
   );
 }

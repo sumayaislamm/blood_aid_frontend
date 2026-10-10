@@ -101,7 +101,7 @@ export default function LoginPage() {
     const dashboardPath = getDashboardPath(user.role);
 
     setAuth(user, token);
-    setAuthCookie(token);
+    setAuthCookie(token, user.role);
 
     return { user, dashboardPath };
   };
