@@ -149,7 +149,7 @@ export default function DonorResponsesPage() {
                   </div>
                 )}
 
-                {response.status === "ACCEPTED" && (
+                {response.status === "ACCEPTED" && !response.donation && (
                   <div className="mt-4 rounded-lg border bg-muted/30 p-4">
                     {donatingResponseId === response.id ? (
                       <div className="space-y-4">

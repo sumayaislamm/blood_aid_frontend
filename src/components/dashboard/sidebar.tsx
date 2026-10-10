@@ -69,11 +69,11 @@ label: "Create Request",
 href: "/requester/new",
 icon: Droplets,
 },
-{
-label: "Donor Responses",
-href: "/requester/responses",
-icon: ClipboardList,
-},
+// {
+// label: "Donor Responses",
+// href: "/requester/responses",
+// icon: ClipboardList,
+// },
 {
 label: "Payments",
 href: "/requester/payments",

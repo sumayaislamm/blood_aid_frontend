@@ -45,6 +45,11 @@ export interface MyDonorResponseItem extends DonorResponseItem {
     urgency: string;
     status: string;
   };
+
+  donation?: {
+    id: string;
+    status: "PENDING" | "COMPLETED" | "VERIFIED" | "CANCELLED";
+  } | null;
 }
 
 export interface DonorResponsesPagination {

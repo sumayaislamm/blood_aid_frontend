@@ -89,14 +89,29 @@ export default function BloodRequestDetailsPage() {
       status: "ACCEPTED" | "REJECTED";
     }) => updateDonorResponseStatus(responseId, status),
 
-    onSuccess: () => {
+    // onSuccess: () => {
+    //   toast.success("Donor response status updated.");
+
+    //   queryClient.invalidateQueries({
+    //     queryKey: ["blood-request-responses", requestId],
+    //   });
+    // },
+
+    onSuccess: async () => {
       toast.success("Donor response status updated.");
 
-      queryClient.invalidateQueries({
-        queryKey: ["blood-request-responses", requestId],
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["blood-request-responses", requestId],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["blood-request", requestId],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["my-blood-requests"],
+        }),
+      ]);
     },
-
     onError: (error: Error) => {
       toast.error(error.message || "Failed to update donor response.");
     },
@@ -395,7 +410,7 @@ export default function BloodRequestDetailsPage() {
                       {response.message}
                     </p>
                   )}
-                
+
                   {response.status === "PENDING" && (
                     <div className="mt-4 flex gap-2">
                       <button
@@ -427,7 +442,6 @@ export default function BloodRequestDetailsPage() {
                       </button>
                     </div>
                   )}
-                  
                 </div>
               ))}
             </div>

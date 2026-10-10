@@ -1,25 +1,3 @@
-// import DashboardSidebar from "@/src/components/dashboard/sidebar";
-// import RoleGuard from "@/src/components/ui/auth/role-guard";
-// import DashboardHeader from "./header";
-
-// export default function DashboardLayout({
-//   children,
-// }: Readonly<{
-//   children: React.ReactNode;
-// }>) {
-//   return (
-//     <RoleGuard>
-//       <div className="flex bg-muted/40">
-//         <DashboardSidebar />
-//         <div className="justify-center">
-//           <DashboardHeader />
-//           <main className="min-w-0 flex-1">{children}</main>
-//         </div>
-//       </div>
-//     </RoleGuard>
-//   );
-// }
-
 "use client";
 
 import { useState } from "react";
