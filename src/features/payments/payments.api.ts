@@ -71,3 +71,17 @@ export async function getMyPayments(): Promise<
     "/payments/my-payments",
   );
 }
+
+
+export interface VerifyStripeSessionResponse {
+  paymentId: string;
+  status: PaymentStatus;
+}
+
+export async function verifyStripeSession(
+  sessionId: string,
+): Promise<ApiResponse<VerifyStripeSessionResponse>> {
+  return apiFetch<ApiResponse<VerifyStripeSessionResponse>>(
+    `/payments/verify-session?session_id=${encodeURIComponent(sessionId)}`,
+  );
+}

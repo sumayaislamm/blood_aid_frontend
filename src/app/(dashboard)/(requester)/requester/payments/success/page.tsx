@@ -1,19 +1,81 @@
+
 "use client";
 
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { useEffect, useState, Suspense } from "react";
+import {
+  CheckCircle2,
+  Loader2,
+  XCircle,
+} from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { verifyStripeSession } from "@/src/features/payments/payments.api";
+
+type VerificationState =
+  | "loading"
+  | "success"
+  | "pending"
+  | "error";
 
 function PaymentSuccessContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
 
+  const [state, setState] =
+    useState<VerificationState>("loading");
+
+  const [message, setMessage] = useState(
+    "Verifying your payment...",
+  );
+
+  useEffect(() => {
+    if (!sessionId) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function verifyPayment() {
+      try {
+        const response = await verifyStripeSession(sessionId!);
+
+        if (cancelled) return;
+
+        if (response.data.status === "PAID") {
+          setState("success");
+          setMessage(
+            "Your payment has been verified successfully.",
+          );
+        } else {
+          setState("pending");
+          setMessage(
+            "Your payment is being confirmed. Please check your payments page shortly.",
+          );
+        }
+      } catch {
+        if (cancelled) return;
+
+        setState("error");
+        setMessage(
+          "We could not verify your payment right now. Please check your payment history before trying again.",
+        );
+      }
+    }
+
+    void verifyPayment();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionId]);
+
   if (!sessionId) {
     return (
       <div className="mx-auto max-w-lg rounded-xl border p-8 text-center">
-        <h1 className="text-xl font-bold">
-          Payment information missing
+        <XCircle className="mx-auto h-12 w-12 text-amber-600" />
+
+        <h1 className="mt-4 text-xl font-bold">
+          Payment Information Missing
         </h1>
 
         <p className="mt-2 text-sm text-muted-foreground">
@@ -32,14 +94,27 @@ function PaymentSuccessContent() {
 
   return (
     <div className="mx-auto max-w-lg rounded-xl border bg-background p-8 text-center shadow-sm">
-      <CheckCircle2 className="mx-auto h-16 w-16 text-green-600" />
+      {state === "loading" && (
+        <Loader2 className="mx-auto h-16 w-16 animate-spin text-primary" />
+      )}
+
+      {state === "success" && (
+        <CheckCircle2 className="mx-auto h-16 w-16 text-green-600" />
+      )}
+
+      {(state === "pending" || state === "error") && (
+        <XCircle className="mx-auto h-16 w-16 text-amber-600" />
+      )}
 
       <h1 className="mt-5 text-2xl font-bold">
-        Payment Successful
+        {state === "loading" && "Verifying Payment"}
+        {state === "success" && "Payment Successful"}
+        {state === "pending" && "Payment Pending"}
+        {state === "error" && "Payment Not Verified"}
       </h1>
 
       <p className="mt-2 text-sm text-muted-foreground">
-        Your Stripe payment was completed successfully.
+        {message}
       </p>
 
       <div className="mt-6 rounded-lg bg-muted p-4 text-left">
