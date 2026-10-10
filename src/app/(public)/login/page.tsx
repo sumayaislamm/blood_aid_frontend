@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,6 +20,21 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const router = useRouter();
   const setAuth = useAuthStore((state) => state.setAuth);
+  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
+
+  useEffect(() => {
+    if (!hasHydrated || !isAuthenticated || !user) return;
+
+    const dashboardPath = {
+      ADMIN: "/admin",
+      DONOR: "/donor",
+      REQUESTER: "/requester",
+    }[user.role];
+
+    router.replace(dashboardPath);
+  }, [hasHydrated, isAuthenticated, user, router]);
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -65,7 +80,15 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
+  if (!hasHydrated) {
+    return (
+      <main className="flex min-h-screen items-center justify-center">
+        <p className="text-sm text-muted-foreground">Loading...</p>
+      </main>
+    );
+  }
 
+  if (isAuthenticated && user) return null;
   return (
     <main className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
       <div className="w-full max-w-md rounded-xl border bg-background p-6 shadow-sm">

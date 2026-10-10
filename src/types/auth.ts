@@ -1,19 +1,3 @@
-// export type UserRole = "ADMIN" | "DONOR" | "REQUESTER";
-
-// export interface User {
-//   id: string;
-//   name: string;
-//   email: string;
-//   role: UserRole;
-// }
-
-// export interface AuthState {
-//   user: User | null;
-//   token: string | null;
-//   isAuthenticated: boolean;
-// }
-
-
 export type UserRole = "ADMIN" | "DONOR" | "REQUESTER";
 
 export type UserStatus = "ACTIVE" | "BLOCKED" | "DELETED";

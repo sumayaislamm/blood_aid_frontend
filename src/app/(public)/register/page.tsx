@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/src/stores/auth.store";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { ArrowLeft, Droplets } from "lucide-react";
-
 import { apiFetch } from "@/src/lib/api";
 
 const registerSchema = z
@@ -44,7 +44,21 @@ interface RegisterResponse {
 export default function RegisterPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
 
+  useEffect(() => {
+    if (!hasHydrated || !isAuthenticated || !user) return;
+
+    const dashboardPath = {
+      ADMIN: "/admin",
+      DONOR: "/donor",
+      REQUESTER: "/requester",
+    }[user.role];
+
+    router.replace(dashboardPath);
+  }, [hasHydrated, isAuthenticated, user, router]);
   const {
     register,
     handleSubmit,
@@ -81,7 +95,15 @@ export default function RegisterPage() {
       setIsSubmitting(false);
     }
   };
+  if (!hasHydrated) {
+    return (
+      <main className="flex min-h-screen items-center justify-center">
+        <p className="text-sm text-muted-foreground">Loading...</p>
+      </main>
+    );
+  }
 
+  if (isAuthenticated && user) return null;
   return (
     <main className="flex min-h-screen items-center justify-center bg-muted/40 px-4 py-10">
       {" "}

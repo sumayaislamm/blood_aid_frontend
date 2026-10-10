@@ -1,11 +1,17 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/src/stores/auth.store";
 import {
   ArrowRight,
   Droplets,
   HeartPulse,
   ShieldCheck,
   Users,
+  LogOut,
 } from "lucide-react";
+import { clearAuthCookie } from "@/src/lib/auth-cookie";
 
 const features = [
   {
@@ -29,35 +35,81 @@ const features = [
 ];
 
 export default function HomePage() {
+  const router = useRouter();
+
+  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
+  const clearAuth = useAuthStore((state) => state.clearAuth);
+
+  const dashboardPath = user
+    ? {
+        ADMIN: "/admin",
+        DONOR: "/donor",
+        REQUESTER: "/requester",
+      }[user.role]
+    : "/login";
+
+  function handleLogout() {
+  clearAuthCookie();
+  clearAuth();
+  router.replace("/");
+}
   return (
     <main className="min-h-screen bg-background">
       {/* Header */}{" "}
       <header className="border-b bg-background">
-        {" "}
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          {" "}
           <Link href="/" className="flex items-center gap-2">
-            {" "}
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              {" "}
               <Droplets className="h-5 w-5" />{" "}
             </div>
             <span className="text-lg font-bold">Blood Aid</span>
           </Link>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
-            >
-              Login
-            </Link>
 
-            <Link
-              href="/register"
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-            >
-              Become a Donor
-            </Link>
+          <div className="flex items-center gap-3">
+            {!hasHydrated ? (
+              <div className="h-9 w-32 animate-pulse rounded-md bg-muted" />
+            ) : isAuthenticated && user ? (
+              <>
+                <div className="hidden text-right sm:block">
+                  <p className="text-sm font-semibold">{user.name}</p>
+                  <p className="text-xs text-muted-foreground">{user.role}</p>
+                </div>
+
+                <Link
+                  href={dashboardPath}
+                  className="rounded-md border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
+                >
+                  Dashboard
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
+                >
+                  Login
+                </Link>
+
+                <Link
+                  href="/register"
+                  className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                >
+                  Become a Donor
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -84,20 +136,19 @@ export default function HomePage() {
             </p>
 
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-              <Link
-                href="/register"
-                className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-              >
-                Become a Donor
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-
-              <Link
-                href="/login"
-                className="inline-flex items-center justify-center rounded-md border bg-background px-6 py-3 text-sm font-semibold transition-colors hover:bg-muted"
-              >
-                I Need Blood
-              </Link>
+              {isAuthenticated && user ? (
+                <Link href={dashboardPath}>Go to Dashboard</Link>
+              ) : (
+                <>
+                  <Link className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90" href="/register">
+                    Become a Donor
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <Link className="inline-flex items-center justify-center rounded-md border bg-background px-6 py-3 text-sm font-semibold transition-colors hover:bg-muted" href="/login">
+                    I Need Blood
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -154,13 +205,11 @@ export default function HomePage() {
             Create your account and become part of the Blood Aid community.
           </p>
 
-          <Link
-            href="/register"
-            className="mt-7 inline-flex items-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Get Started
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+          {isAuthenticated && user ? (
+            <Link href={dashboardPath}>Go to Dashboard</Link>
+          ) : (
+            <Link href="/register">Get Started</Link>
+          )}
         </div>
       </section>
       {/* Footer */}
