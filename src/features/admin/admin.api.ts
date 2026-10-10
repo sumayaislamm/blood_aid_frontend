@@ -2,6 +2,12 @@ import { apiFetch } from "@/src/lib/api";
 import type { ApiResponse } from "@/src/types/auth";
 import type { AdminDashboardData } from "@/src/types/dashboard";
 import type { UserRole, UserStatus } from "@/src/types/auth";
+import type {
+  BloodRequestStatus,
+  BloodGroup,
+  BloodRequestUrgency,
+  BloodRequestItem,
+} from "@/src/features/blood-requests/blood-requests.api";
 
 export interface AdminDonationItem {
   id: string;
@@ -31,16 +37,53 @@ export interface AdminDonationsData {
   };
 }
 
+export interface AdminDonationsParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: AdminDonationItem["status"] | "ALL";
+  sortBy?:
+    | "createdAt"
+    | "updatedAt"
+    | "donationDate"
+    | "units"
+    | "status";
+  sortOrder?: "asc" | "desc";
+}
+
 export async function getAdminStats(): Promise<
   ApiResponse<AdminDashboardData>
 > {
   return apiFetch<ApiResponse<AdminDashboardData>>("/admin/stats");
 }
 
-export async function getAdminDonations(): Promise<
-  ApiResponse<AdminDonationsData>
-> {
-  return apiFetch<ApiResponse<AdminDonationsData>>("/admin/donations");
+// export async function getAdminDonations(): Promise<
+//   ApiResponse<AdminDonationsData>
+// > {
+//   return apiFetch<ApiResponse<AdminDonationsData>>("/admin/donations");
+// }
+
+export async function getAdminDonations(
+  params: AdminDonationsParams = {},
+): Promise<ApiResponse<AdminDonationsData>> {
+  const searchParams = new URLSearchParams();
+
+  searchParams.set("page", String(params.page ?? 1));
+  searchParams.set("limit", String(params.limit ?? 10));
+  searchParams.set("sortBy", params.sortBy ?? "createdAt");
+  searchParams.set("sortOrder", params.sortOrder ?? "desc");
+
+  if (params.search?.trim()) {
+    searchParams.set("search", params.search.trim());
+  }
+
+  if (params.status && params.status !== "ALL") {
+    searchParams.set("status", params.status);
+  }
+
+  return apiFetch<ApiResponse<AdminDonationsData>>(
+    `/admin/donations?${searchParams.toString()}`,
+  );
 }
 
 export async function verifyDonation(
@@ -148,5 +191,162 @@ export async function updateAdminUserStatus(
       method: "PATCH",
       body: JSON.stringify({ status }),
     },
+  );
+}
+
+export interface AdminBloodRequestItem extends BloodRequestItem {
+  requester: {
+    id: string;
+    name: string;
+    email: string;
+    phone: string | null;
+  };
+  _count: {
+    responses: number;
+    donations: number;
+    payments: number;
+  };
+}
+
+export interface AdminBloodRequestsData {
+  bloodRequests: AdminBloodRequestItem[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface AdminBloodRequestsParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  bloodGroup?: BloodGroup | "ALL";
+  urgency?: BloodRequestUrgency | "ALL";
+  status?: BloodRequestStatus | "ALL";
+  city?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+}
+
+export async function getAdminBloodRequests(
+  params: AdminBloodRequestsParams = {},
+): Promise<ApiResponse<AdminBloodRequestsData>> {
+  const searchParams = new URLSearchParams();
+
+  searchParams.set("page", String(params.page ?? 1));
+  searchParams.set("limit", String(params.limit ?? 10));
+  searchParams.set("sortBy", params.sortBy ?? "createdAt");
+  searchParams.set("sortOrder", params.sortOrder ?? "desc");
+
+  if (params.search?.trim()) {
+    searchParams.set("search", params.search.trim());
+  }
+
+  if (params.bloodGroup && params.bloodGroup !== "ALL") {
+    searchParams.set("bloodGroup", params.bloodGroup);
+  }
+
+  if (params.urgency && params.urgency !== "ALL") {
+    searchParams.set("urgency", params.urgency);
+  }
+
+  if (params.status && params.status !== "ALL") {
+    searchParams.set("status", params.status);
+  }
+
+  if (params.city?.trim()) {
+    searchParams.set("city", params.city.trim());
+  }
+
+  return apiFetch<ApiResponse<AdminBloodRequestsData>>(
+    `/admin/blood-requests?${searchParams.toString()}`,
+  );
+}
+
+export async function updateAdminBloodRequestStatus(
+  requestId: string,
+  status: BloodRequestStatus,
+): Promise<ApiResponse<AdminBloodRequestItem>> {
+  return apiFetch<ApiResponse<AdminBloodRequestItem>>(
+    `/admin/blood-requests/${encodeURIComponent(requestId)}/status`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    },
+  );
+}
+
+
+// Payment
+
+
+export type AdminPaymentStatus =
+  | "PENDING"
+  | "PAID"
+  | "FAILED"
+  | "REFUNDED";
+
+export type AdminPaymentProvider = "STRIPE" | "BKASH";
+
+export interface AdminPaymentItem {
+  id: string;
+  amount: string | number;
+  currency: string;
+  provider: AdminPaymentProvider;
+  status: AdminPaymentStatus;
+  transactionId: string | null;
+  paidAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  requester?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  bloodRequest?: {
+    id: string;
+    bloodGroup: string;
+    hospitalName: string;
+    city: string;
+  };
+}
+
+export interface AdminPaymentsData {
+  payments: AdminPaymentItem[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface AdminPaymentsParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  provider?: AdminPaymentProvider;
+  status?: AdminPaymentStatus;
+  sortBy?: "createdAt" | "updatedAt" | "paidAt" | "amount" | "status" | "provider";
+  sortOrder?: "asc" | "desc";
+}
+
+export async function getAdminPayments(
+  params: AdminPaymentsParams = {},
+): Promise<ApiResponse<AdminPaymentsData>> {
+  const searchParams = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== "") {
+      searchParams.set(key, String(value));
+    }
+  });
+
+  const query = searchParams.toString();
+
+  return apiFetch<ApiResponse<AdminPaymentsData>>(
+    `/admin/payments${query ? `?${query}` : ""}`,
   );
 }

@@ -1,28 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
-import {
-  CheckCircle2,
-  Loader2,
-  RefreshCw,
-  ShieldCheck,
-} from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { CheckCircle2, Loader2, RefreshCw, ShieldCheck } from "lucide-react";
 
 import {
   getAdminDonations,
   verifyDonation,
 } from "@/src/features/admin/admin.api";
 
-type DonationStatus =
-  | "PENDING"
-  | "COMPLETED"
-  | "VERIFIED"
-  | "CANCELLED";
+type DonationStatus = "PENDING" | "COMPLETED" | "VERIFIED" | "CANCELLED";
 
 const statusStyles: Record<DonationStatus, string> = {
   PENDING: "bg-yellow-100 text-yellow-800",
@@ -43,15 +30,20 @@ export default function AdminDonationsPage() {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [feedback, setFeedback] = useState("");
 
-  const {
-    data,
-    isLoading,
-    isError,
-    refetch,
-    isFetching,
-  } = useQuery({
+  // const {
+  //   data,
+  //   isLoading,
+  //   isError,
+  //   refetch,
+  //   isFetching,
+  // } = useQuery({
+  //   queryKey: ["admin-donations"],
+  //   queryFn: getAdminDonations,
+  // });
+
+  const { data, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ["admin-donations"],
-    queryFn: getAdminDonations,
+    queryFn: () => getAdminDonations(),
   });
 
   const donations = data?.data?.donations ?? [];
@@ -82,20 +74,14 @@ export default function AdminDonationsPage() {
   const filteredDonations =
     statusFilter === "ALL"
       ? donations
-      : donations.filter(
-          (donation) => donation.status === statusFilter,
-        );
+      : donations.filter((donation) => donation.status === statusFilter);
 
   return (
     <section className="space-y-6">
       <div>
-        <p className="text-sm text-muted-foreground">
-          Administration
-        </p>
+        <p className="text-sm text-muted-foreground">Administration</p>
 
-        <h1 className="mt-1 text-2xl font-bold tracking-tight">
-          Donations
-        </h1>
+        <h1 className="mt-1 text-2xl font-bold tracking-tight">Donations</h1>
 
         <p className="mt-1 text-sm text-muted-foreground">
           Review donations and verify completed donations.
@@ -104,28 +90,21 @@ export default function AdminDonationsPage() {
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm text-muted-foreground">
-            Total donations
-          </p>
+          <p className="text-sm text-muted-foreground">Total donations</p>
           <p className="text-2xl font-bold">
             {pagination?.total ?? donations.length}
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <label
-            htmlFor="donation-status"
-            className="text-sm font-medium"
-          >
+          <label htmlFor="donation-status" className="text-sm font-medium">
             Status
           </label>
 
           <select
             id="donation-status"
             value={statusFilter}
-            onChange={(event) =>
-              setStatusFilter(event.target.value)
-            }
+            onChange={(event) => setStatusFilter(event.target.value)}
             className="rounded-lg border bg-background px-3 py-2 text-sm"
           >
             <option value="ALL">All statuses</option>
@@ -142,9 +121,7 @@ export default function AdminDonationsPage() {
             className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-muted disabled:opacity-50"
           >
             <RefreshCw
-              className={`h-4 w-4 ${
-                isFetching ? "animate-spin" : ""
-              }`}
+              className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`}
             />
             Refresh
           </button>
@@ -192,13 +169,11 @@ export default function AdminDonationsPage() {
         </div>
       ) : (
         <div className="overflow-x-auto rounded-xl border">
-          <table className="w-full min-w-[850px] text-left text-sm">
+          <table className="w-full min-w-212.5 text-left text-sm">
             <thead className="border-b bg-muted/50">
               <tr>
                 <th className="px-4 py-3 font-semibold">Donor</th>
-                <th className="px-4 py-3 font-semibold">
-                  Blood request
-                </th>
+                <th className="px-4 py-3 font-semibold">Blood request</th>
                 <th className="px-4 py-3 font-semibold">Date</th>
                 <th className="px-4 py-3 font-semibold">Units</th>
                 <th className="px-4 py-3 font-semibold">Status</th>
@@ -292,8 +267,8 @@ export default function AdminDonationsPage() {
 
       {pagination && pagination.totalPages > 1 && (
         <p className="text-sm text-muted-foreground">
-          Showing the current page of {pagination.total} donations.
-          Pagination controls can be added next.
+          Showing the current page of {pagination.total} donations. Pagination
+          controls can be added next.
         </p>
       )}
     </section>
